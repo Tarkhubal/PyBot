@@ -1,12 +1,12 @@
 # PyBot
+
 ![Python](https://img.shields.io/badge/python-3.13%2B-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Discord](https://img.shields.io/badge/discord-slash%20commands-5865F2.svg)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 ![Code Owners](https://img.shields.io/badge/code%20owners-enforced-orange.svg)
 
-
-Bot discord modulaire, écrit en Python, basé exclusivmeent sur les **slash commands**.
+Bot Discord modulaire, écrit en Python, basé exclusivement sur les **slash commands**.  
 Le bot est mono-serveur et extensible via son système de *features* validées par le staff.
 
 L'objectif du projet est de permettre à la communauté de proposer des fonctionnalités et de les coder via des **Pull Request**, sans compromettre la stabilité du bot.
@@ -14,18 +14,16 @@ L'objectif du projet est de permettre à la communauté de proposer des fonction
 ## Fonctionnement général
 
 - Le core du bot est maintenu par le staff (Aucune modification de ce core ne sera acceptée hors membre du staff)
-
 - Les fonctionnalités sont isolées dans un système de **features**
-
 - Une feature n'est chargée que si elle est explicitement activée dans la configuration
-
 - L'instance du bot ne tourne que sur le serveur PyPro
 
 ## Créer votre propre feature
 
 ### Prérequis
-- Python: 3.13+
-- Un bot discord crééé via le *Discord Developer Portal*
+
+- Python : 3.13+
+- Un bot Discord créé via le *Discord Developer Portal*
 - Le scope OAuth2 `application.commands` activé
 
 ### Installation (local)
@@ -36,8 +34,8 @@ source .venv/bin/activate  # Windows : .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-
 Créer un fichier .env (exemple dans config/.env.example)
+
 ```env
 DISCORD_TOKEN=your_discord_token_here
 GUILD_ID=your_guild_id_here
@@ -46,7 +44,8 @@ LOG_LEVEL=info
 STAFF_ROLES_IDS=
 ```
 
-Lancer le bot:
+Lancer le bot :
+
 ```cmd
 python -m bot.core.app
 ```
@@ -71,56 +70,59 @@ config/
 
 ## Système de features
 
-Chaque feature est autonome et vit dans son propre dossier
+Chaque feature est autonome et vit dans son propre dossier.
 
 ```markdown
 features/<slug>/
-    __init__.py
-    feature.py
+  __init__.py
+  feature.py
 ```
 
 ### Contrat obligatoire
 
-Chaque `feature.py` doit exposer ces informations:
+Chaque `feature.py` doit exposer ces informations :
 
-1) `FEATURE` (Constante dictionnaire)
-    ```Python
-    FEATURE = {
-        "slug": "ping",
-        "name": "Ping",
-        "description": "Simple ping command",
-        "requires_config": False,
-        "permissions": [],
-    }
-    ```
+1) `FEATURE` (constante dictionnaire)
 
-    Contraintes:
-    - `slug` doit correspondre **exactement** au nom du dossier
-    - Le slug est unique dans le projet
+  ```Python
+  FEATURE = {
+    "slug": "ping",
+    "name": "Ping",
+    "description": "Simple ping command",
+    "requires_config": False,
+    "permissions": [],
+  }
+  ```
+
+  Contraintes :
+  - `slug` doit correspondre **exactement** au nom du dossier
+  - Le slug est unique dans le projet
 
 2) `register(tree, config)`
-    
-    ```Python
-    def register(tree, config)
-    ```
-    
-    Rôles:
-    - Enregistrer les slash commands de la feature
-    
-    Règles strictes :
-    - Pas d’I/O (pas de fichiers, pas de réseau) dans register, à faire dans la fonction de la commande
-    - Pas d’accès à l’environnement
-    - Pas de boucles ou tâches longues
-    - Pas d’effets de bord à l’import
 
-    Le paramètre `config` correspond au bloc `[features.<slug>]` du fichier TOML.
+  ```Python
+  def register(tree, config)
+  ```
+
+  Rôles :
+  - Enregistrer les slash commands de la feature
+
+  Règles strictes :
+  - Pas d’I/O (pas de fichiers, pas de réseau) dans register, à faire dans la fonction de la commande
+  - Pas d’accès à l’environnement
+  - Pas de boucles ou tâches longues
+  - Pas d’effets de bord à l’import
+
+  Le paramètre `config` correspond au bloc `[features.<slug>]` du fichier TOML.
 
 ## Organisation interne des features
-Chaque feature est libre d'organiser sont dossier interne comme elle le souhaite.
-En dehors des fichiers obligatoires (`feature.py`, `__init__.py`), une feature peut contenir:
+
+Chaque feature est libre d'organiser son dossier interne comme elle le souhaite.  
+En dehors des fichiers obligatoires (`feature.py`, `__init__.py`), une feature peut contenir :
+
 - Des modules Python internes
 - Des sous-dossiers
-- Des fichiers de données (JSON, SQL, etc...)
+- Des fichiers de données (JSON, SQL, etc.)
 
 ```markdown
 features/example/
@@ -131,48 +133,52 @@ features/example/
   data/
     defaults.json
 ```
-Contraintes:
+
+Contraintes :
 - Le point d'entrée reste **toujours** `feature.py`
-- Aucun fichier externe à `feature.py` ne doit être importé par le core.
-- l'I/O reste interdit au chargement (`import/register), mais autorisé à l'exécution des commandes.
+- Aucun fichier externe à `feature.py` ne doit être importé par le core
+- L'I/O reste interdit au chargement (`import/register`), mais autorisé à l'exécution des commandes
 
 ## Configuration
 
-- Les secrets vont dans .env (jamamis commités)
+- Les secrets vont dans .env (jamais commités)
 - Le comportement va dans `config.toml`
 
-Activation des fetaures:
+Activation des features :
 
 ```toml
 enabled_features = ["ping", "say"]
 ```
 
-Configuration par feature:
+Configuration par feature :
 
 ```toml
-
 [features.say]
-ephemral_default = false
+ephemeral_default = false
 ```
+
 Si `requires_config = true` et que la section est absente, la feature est refusée au chargement.
 
-
 ## Sécurité et stabilité
+
 - Les conflits de noms de slash commands sont détectés automatiquement
 - Une feature en erreur ne bloquera pas le bot
 - Le core est protégé via CODEOWNERS et règles de branche
 
 ## Contribuer
-Les contributions se font exlcusivement via **Pull Request**.
 
-Règle de base:
+Les contributions se font exclusivement via **Pull Request**.
+
+Règle de base :
 - Une PR = une feature
 - Ne pas modifier le core
-- Ne pas modifier `enabled_feature` (lors de la PR, amusez vous en local)
+- Ne pas modifier `enabled_features` (lors de la PR, amusez-vous en local)
 - Ne pas ajouter de dépendance sans validation
 - Inclure un test manuel simple
 
 Voir `CONTRIBUTING.md` pour plus de détails.
 
 ## Licence
+
 Ce projet est distribué sous licence [MIT](LICENSE).
+
