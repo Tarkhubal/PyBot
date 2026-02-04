@@ -12,6 +12,7 @@ FEATURE = {
 }
 
 def register(tree, config):
-    @tree.command(name="ping", description="Responds with Pong!")
+    @tree.command(name=FEATURE["slug"], description=FEATURE["description"])
+    @app_commands.describe()
     async def ping_command(interaction: discord.Interaction):
         await interaction.response.send_message("Pong!")

@@ -6,6 +6,9 @@ from typing import Dict, List
 
 log = logging.getLogger(__name__)
 
+def _command_qualified_keys(tree) -> set[str]:
+    return {cmd.name for cmd in tree.get_commands()}
+
 def load_features(tree, config: Dict) -> List:
     params_needed: List[str] = ["slug", "name", "description", "version", "author", "requires_config", "permissions"]
     enabled: List[str] = config["enabled_features"]
@@ -64,7 +67,27 @@ def load_features(tree, config: Dict) -> List:
             continue
             
         try:
+            
+            before = _command_qualified_keys(tree)
+            log.debug(f"Commands before loading feature {slug}: {before}")
             module.register(tree, feature_cfg)
+            
+            after = _command_qualified_keys(tree)
+            log.debug(f"Commands after loading feature {slug}: {after}")
+            added = after - before
+            duplicates = before & added
+            if duplicates:
+                failed[slug] = "Command name conflict: " + ", ".join(duplicates)
+                log.error(f"Feature module {module_path} command name conflict: {', '.join(duplicates)}.")
+                
+                for cmd_name in added:
+                    try:
+                        tree.remove_command(cmd_name)
+                    except Exception as e:
+                        pass
+                continue
+            
+            
             loaded[slug] = module
             log.info(f"Successfully loaded feature module {module_path}.")
         except Exception as e:
