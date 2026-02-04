@@ -1,10 +1,3 @@
-enabled_features = ["template_feature", "ping"]
+enabled_features = ["ping"]
 
 [features]
-[features.template_feature]
-setting1 = "value1"
-setting2 = "value2"
-
-[features.template.subfeature]
-optionA = true
-optionB = 42

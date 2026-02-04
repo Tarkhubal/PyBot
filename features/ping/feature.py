@@ -1,3 +1,6 @@
+import discord
+from discord import app_commands
+
 FEATURE = {
     "slug": "ping",
     "name": "Ping Feature",
@@ -9,4 +12,6 @@ FEATURE = {
 }
 
 def register(tree, config):
-    pass
+    @tree.command(name="ping", description="Responds with Pong!")
+    async def ping_command(interaction: discord.Interaction):
+        await interaction.response.send_message("Pong!")
