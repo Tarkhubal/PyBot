@@ -1,4 +1,4 @@
-enabled_features = ["ping", "say", "say_copy"]
+enabled_features = ["ping", "say", "version"]
 
 [features]
 [features.say]
