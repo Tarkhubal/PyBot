@@ -31,8 +31,7 @@ def setup_logging(level : str = "INFO") -> None:
 
     fh = RotatingFileHandler(
         logs_dir / f"bot_{date.today().isoformat()}.log",
-        maxBytes=5_000_000,     # 5MB par fichier
-        backupCount=0,          # 0 = pas de limite (garde tout)
+        maxBytes=5_000_000,     
         encoding="utf-8",
     )
     fh.setFormatter(fmt)
@@ -52,8 +51,9 @@ class BotApp(commands.Bot):
         if failed:
             logging.getLogger(__name__).warning(f"Failed to load features: {failed}")
             
-        await self.tree.sync(guild=self.guild)
-        logging.getLogger(__name__).info(f"Command tree guild {self.guild.id} synced.")
+        self.tree.copy_global_to(guild=self.guild) 
+        synced = await self.tree.sync(guild=self.guild)
+        logging.getLogger(__name__).info("Synced %d commands to guild %s", len(synced), self.guild.id)
     
 def main() -> None:
     BASE_DIR = Path(__file__).resolve().parent.parent
