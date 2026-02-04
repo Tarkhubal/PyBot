@@ -57,7 +57,7 @@ class BotApp(commands.Bot):
     
 def main() -> None:
     BASE_DIR = Path(__file__).resolve().parent.parent
-    load_dotenv(BASE_DIR / "config" / ".env")
+    load_dotenv()
         
     env = load_env()
     setup_logging(level=os.getenv("LOG_LEVEL", "INFO"))

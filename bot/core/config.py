@@ -19,8 +19,7 @@ class AppEnv:
 
 def load_env() -> AppEnv:
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
-    print(BASE_DIR)
-    load_dotenv(BASE_DIR / "config" / ".env")
+    load_dotenv()
     
     log = logging.getLogger(__name__)
     discord_token = os.getenv("DISCORD_TOKEN").strip()
