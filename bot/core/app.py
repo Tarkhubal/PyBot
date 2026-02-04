@@ -1,0 +1,73 @@
+from __future__ import annotations
+
+import logging
+import discord
+import os
+
+from discord.ext import commands
+from discord import app_commands
+from dotenv import load_dotenv
+from typing import Dict, List
+from pathlib import Path
+from logging.handlers import RotatingFileHandler
+from datetime import date
+
+from ..core.config import load_env, load_config
+from ..core.loader import load_features
+
+def setup_logging(level : str = "INFO") -> None:
+    logs_dir = Path(__file__).resolve().parent.parent.parent / "logs"
+    logs_dir.mkdir(exist_ok=True)
+    
+    fmt = logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+
+    root = logging.getLogger()
+    root.setLevel(getattr(logging, level.upper(), logging.INFO))
+    root.handlers.clear()
+
+    sh = logging.StreamHandler()
+    sh.setFormatter(fmt)
+    root.addHandler(sh)
+
+    fh = RotatingFileHandler(
+        logs_dir / f"bot_{date.today().isoformat()}.log",
+        maxBytes=5_000_000,     # 5MB par fichier
+        backupCount=0,          # 0 = pas de limite (garde tout)
+        encoding="utf-8",
+    )
+    fh.setFormatter(fmt)
+    root.addHandler(fh)
+    
+    
+
+class BotApp(commands.Bot):
+    def __init__(self, guild_id: int) -> None:
+        intents = discord.Intents.default()
+        super().__init__(command_prefix="!", intents=intents)
+        self.guild = discord.Object(id=guild_id)
+        
+    async def setup_hook(self) -> None:
+        loaded, failed = load_features(self.tree, self.config)
+        logging.getLogger(__name__).info(f"Loaded features: {list(loaded.keys())}")
+        if failed:
+            logging.getLogger(__name__).warning(f"Failed to load features: {failed}")
+            
+        await self.tree.sync(guild=self.guild)
+        logging.getLogger(__name__).info(f"Command tree guild {self.guild.id} synced.")
+    
+def main() -> None:
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    load_dotenv(BASE_DIR / "config" / ".env")
+        
+    env = load_env()
+    setup_logging(level=os.getenv("LOG_LEVEL", "INFO"))
+        
+    config = load_config(env.config_path)
+        
+    bot = BotApp(guild_id=env.guild_id)
+    bot.config = config
+        
+    bot.run(env.discord_token)
+        
+if __name__ == "__main__":
+    main()
