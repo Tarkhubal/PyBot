@@ -10,6 +10,20 @@ def _command_qualified_keys(tree) -> set[str]:
     return {cmd.name for cmd in tree.get_commands()}
 
 def load_features(tree, config: Dict) -> List:
+    """Dynamically load and register features based on config, return dict of loaded modules and dict of failed ones with error messages
+
+    Each feature module must be located at features/{slug}/feature.py and define:
+    - a FEATURE dictionary with keys: slug, name, description, version, author, requires_config (bool), permissions (list of str)
+    - a register(tree, config) function that registers the feature's commands to the provided tree using the provided config dict
+
+    Parameters:
+        tree: the app_commands.CommandTree to register commands to
+        config: the full configuration dict loaded from the config file, used to pass feature-specific config to each module
+
+    Returns:
+        loaded: dict mapping feature slug to the imported module object for successfully loaded features
+        failed: dict mapping feature slug to error message for features that failed to load
+    """
     params_needed: List[str] = ["slug", "name", "description", "version", "author", "requires_config", "permissions"]
     enabled: List[str] = config["enabled_features"]
     features_config : Dict = config.get("features", {})

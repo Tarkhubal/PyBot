@@ -14,6 +14,7 @@ from datetime import date
 
 from ..core.config import load_env, load_config
 from ..core.loader import load_features
+from ..core.checks import set_staff_roles
 
 def setup_logging(level : str = "INFO") -> None:
     logs_dir = Path(__file__).resolve().parent.parent.parent / "logs"
@@ -36,8 +37,7 @@ def setup_logging(level : str = "INFO") -> None:
     )
     fh.setFormatter(fmt)
     root.addHandler(fh)
-    
-    
+
 
 class BotApp(commands.Bot):
     def __init__(self, guild_id: int) -> None:
@@ -46,28 +46,29 @@ class BotApp(commands.Bot):
         self.guild = discord.Object(id=guild_id)
         
     async def setup_hook(self) -> None:
+        self.tree.clear_commands(guild=None)
+        await self.tree.sync()
+        
         loaded, failed = load_features(self.tree, self.config)
         logging.getLogger(__name__).info(f"Loaded features: {list(loaded.keys())}")
         if failed:
             logging.getLogger(__name__).warning(f"Failed to load features: {failed}")
-            
+        
         self.tree.copy_global_to(guild=self.guild) 
         synced = await self.tree.sync(guild=self.guild)
         logging.getLogger(__name__).info("Synced %d commands to guild %s", len(synced), self.guild.id)
-    
+
 def main() -> None:
-    BASE_DIR = Path(__file__).resolve().parent.parent
-    load_dotenv()
-        
     env = load_env()
     setup_logging(level=os.getenv("LOG_LEVEL", "INFO"))
-        
+    set_staff_roles(env.staff_roles_ids)
+    
     config = load_config(env.config_path)
-        
+    
     bot = BotApp(guild_id=env.guild_id)
     bot.config = config
-        
+    
     bot.run(env.discord_token)
-        
+
 if __name__ == "__main__":
     main()

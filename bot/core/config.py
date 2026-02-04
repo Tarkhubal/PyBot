@@ -18,7 +18,7 @@ class AppEnv:
     staff_roles_ids: List[int]
 
 def load_env() -> AppEnv:
-    BASE_DIR = Path(__file__).resolve().parent.parent.parent
+    BASE_DIR = Path(__file__).parents[2]
     load_dotenv()
     
     log = logging.getLogger(__name__)
