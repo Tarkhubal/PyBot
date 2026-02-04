@@ -77,8 +77,8 @@ def load_features(tree, config: Dict) -> List:
             added = after - before
             duplicates = before & added
             if duplicates:
-                failed[slug] = "Command name conflict: " + ", ".join(duplicates)
-                log.error(f"Feature module {module_path} command name conflict: {', '.join(duplicates)}.")
+                failed[slug] = "Command name conflict: " + ", ".join(sorted(duplicates))
+                log.error(f"Feature module {module_path} command name conflict: {', '.join(sorted(duplicates))}.")
                 
                 for cmd_name in added:
                     try:
