@@ -46,19 +46,21 @@ class BotApp(commands.Bot):
         self.guild = discord.Object(id=guild_id)
         
     async def setup_hook(self) -> None:
+        # clear any existing commands to avoid duplicates or deleted commands on reload ("ghost" commands that linger after code changes)
+        self.tree.clear_commands(guild=None)
+        await self.tree.sync()
+        
+        # then build and sync the tree corretly
         loaded, failed = load_features(self.tree, self.config)
         logging.getLogger(__name__).info(f"Loaded features: {list(loaded.keys())}")
         if failed:
             logging.getLogger(__name__).warning(f"Failed to load features: {failed}")
-            
+        
         self.tree.copy_global_to(guild=self.guild) 
         synced = await self.tree.sync(guild=self.guild)
         logging.getLogger(__name__).info("Synced %d commands to guild %s", len(synced), self.guild.id)
-    
+
 def main() -> None:
-    BASE_DIR = Path(__file__).resolve().parent.parent
-    load_dotenv()
-        
     env = load_env()
     setup_logging(level=os.getenv("LOG_LEVEL", "INFO"))
         

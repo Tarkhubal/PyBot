@@ -18,8 +18,8 @@ class AppEnv:
     staff_roles_ids: List[int]
 
 def load_env() -> AppEnv:
-    BASE_DIR = Path(__file__).resolve().parent.parent.parent
-    load_dotenv()
+    BASE_DIR = Path(__file__).parents[2]
+    load_dotenv(BASE_DIR / "config" / ".env")
     
     log = logging.getLogger(__name__)
     discord_token = os.getenv("DISCORD_TOKEN").strip()
