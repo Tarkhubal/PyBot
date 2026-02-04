@@ -1,3 +1,5 @@
-enabled_features = ["ping"]
+enabled_features = ["ping", "say"]
 
 [features]
+[features.say]
+ephemeral_default = true
