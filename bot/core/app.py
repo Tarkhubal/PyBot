@@ -27,6 +27,9 @@ def setup_logging(level: str = "INFO") -> None:
     root.setLevel(getattr(logging, level.upper(), logging.INFO))
     root.handlers.clear()
 
+    # Redirect stderr to stdout to fix Railway logging issues
+    sys.stderr = sys.stdout
+
     sh = logging.StreamHandler(sys.stdout)
     sh.setFormatter(fmt)
     root.addHandler(sh)
@@ -100,7 +103,7 @@ def main() -> None:
     bot = BotApp(guild_id=env.guild_id)
     bot.config = config
 
-    bot.run(env.discord_token)
+    bot.run(env.discord_token, log_handler=None)
 
 
 if __name__ == "__main__":
