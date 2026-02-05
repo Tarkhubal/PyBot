@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from datetime import date
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -25,7 +27,10 @@ def setup_logging(level: str = "INFO") -> None:
     root.setLevel(getattr(logging, level.upper(), logging.INFO))
     root.handlers.clear()
 
-    sh = logging.StreamHandler()
+    # Redirect stderr to stdout to fix Railway logging issues
+    sys.stderr = sys.stdout
+
+    sh = logging.StreamHandler(sys.stdout)
     sh.setFormatter(fmt)
     root.addHandler(sh)
 
@@ -57,6 +62,35 @@ class BotApp(commands.Bot):
         synced = await self.tree.sync(guild=self.guild)
         logging.getLogger(__name__).info("Synced %d commands to guild %s", len(synced), self.guild.id)
 
+    async def on_tree_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
+
+        if isinstance(error, app_commands.CommandOnCooldown):
+            logging.getLogger(__name__).warning(f"Command on cooldown {interaction.command}: {error}")
+            await interaction.response.send_message(
+                f"⏳ Cette commande est en cooldown. Réessaie dans {error.retry_after:.1f} secondes.",
+                ephemeral=True,
+            )
+            return
+
+        if isinstance(error, app_commands.MissingPermissions):
+            logging.getLogger(__name__).warning(f"Missing permissions for command {interaction.command}: {error}")
+            await interaction.response.send_message(
+                "❌ Tu n'as pas les permissions nécessaires pour utiliser cette commande.", ephemeral=True
+            )
+            return
+
+        if isinstance(error, app_commands.CheckFailure):
+            logging.getLogger(__name__).warning(f"Check failed for command {interaction.command}: {error}")
+            await interaction.response.send_message(
+                "❌ Tu ne remplis pas les conditions pour utiliser cette commande.", ephemeral=True
+            )
+            return
+
+        logging.getLogger(__name__).error(f"Error in command {interaction.command}: {error}")
+        await interaction.response.send_message(
+            "❌ Une erreur est survenue lors de l'exécution de la commande.", ephemeral=True
+        )
+
 
 def main() -> None:
     setup_logging(level=os.getenv("LOG_LEVEL", "INFO"))
@@ -69,7 +103,7 @@ def main() -> None:
     bot = BotApp(guild_id=env.guild_id)
     bot.config = config
 
-    bot.run(env.discord_token)
+    bot.run(env.discord_token, log_handler=None)
 
 
 if __name__ == "__main__":
