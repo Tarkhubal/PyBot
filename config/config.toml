@@ -1,8 +1,9 @@
-enabled_features = ["ping", "say", "version", "test_checks"]
+enabled_features = ["ping", "say", "version", "test_checks", "utils"]
 
 [features]
 [features.say]
 ephemeral_default = true
 
-[features.say_copy]
+[features.utils]
 ephemeral_default = true
+guild_id=1218400838196662403

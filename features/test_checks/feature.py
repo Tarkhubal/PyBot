@@ -14,7 +14,7 @@ FEATURE = {
     "name": "Test Checks Feature",
     "description": "Feature to test global checks decorators.",
     "version": "1.0.0",
-    "author": "Tryno",
+    "author": "Thomas",
     "requires_config": False,
     "permissions": ["send_messages"]
 }
