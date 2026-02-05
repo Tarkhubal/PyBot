@@ -6,15 +6,16 @@ import os
 
 from discord.ext import commands
 from discord import app_commands
-from dotenv import load_dotenv
 from typing import Dict, List
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 from datetime import date
+from dotenv import load_dotenv
 
 from ..core.config import load_env, load_config
 from ..core.loader import load_features
 from ..core.checks import set_staff_roles
+
 
 def setup_logging(level : str = "INFO") -> None:
     logs_dir = Path(__file__).resolve().parent.parent.parent / "logs"
@@ -59,8 +60,9 @@ class BotApp(commands.Bot):
         logging.getLogger(__name__).info("Synced %d commands to guild %s", len(synced), self.guild.id)
 
 def main() -> None:
-    env = load_env()
     setup_logging(level=os.getenv("LOG_LEVEL", "INFO"))
+    load_dotenv()
+    env = load_env()
     set_staff_roles(env.staff_roles_ids)
     
     config = load_config(env.config_path)

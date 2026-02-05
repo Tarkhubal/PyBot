@@ -16,12 +16,33 @@ class AppEnv:
     guild_id: int
     config_path: Path
     staff_roles_ids: List[int]
+    
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[2]        
 
 def load_env() -> AppEnv:
-    BASE_DIR = Path(__file__).parents[2]
+    root = _project_root()
+    log = logging.getLogger(__name__)
+    app_env = os.getenv("APP_ENV", "dev").strip().lower()
+    if app_env not in ("dev", "prod"):
+        raise ValueError("APP_ENV environment variable must be 'dev' or 'prod'.")
+    
+    candidates = [
+        root / f".env.{app_env}",
+        root / ".env",
+        root / "config" / f".env.{app_env}",
+        root / "config" / ".env"
+    ]
+    override = False
+    
+    for path in candidates:
+        if path.exists():
+            log.info(f"Loaded environment variables from {path}")
+            load_dotenv(dotenv_path=path, override=override)
+            break
     load_dotenv()
     
-    log = logging.getLogger(__name__)
     discord_token = os.getenv("DISCORD_TOKEN").strip()
     guild_id_str = os.getenv("GUILD_ID").strip()
     config_path_str = os.getenv("CONFIG_PATH", "config.toml").strip()
