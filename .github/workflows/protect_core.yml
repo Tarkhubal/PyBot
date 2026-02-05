@@ -1,0 +1,27 @@
+name: Core Protection
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+jobs:
+  check-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            core:
+              - 'bot/core/**'
+              - 'bot/loader.py'
+              - 'requirements.txt'
+      - name: Check for core violations
+        if: steps.changes.outputs.core == 'true'
+        run: |
+          echo "User ${{ github.actor }} has modified core files in this PR."
+          if [ "${{ github.actor }}" != "dependabot[bot]" ] && [ "${{ github.actor }}" != "trynogaunt" ]; then
+             echo "⚠️ ALERT: Core files have been modified by ${{ github.actor }} in this PR."
+             exit 1
+          else
+              echo "✅ Core files modified by ${{ github.actor }}, allowing PR to proceed."
+          fi
