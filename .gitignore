@@ -6,3 +6,4 @@ logs/
 *.pyc
 .env
 tests/
+.env.*
