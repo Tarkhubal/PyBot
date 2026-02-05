@@ -1,13 +1,7 @@
 import discord
 from discord import app_commands
-from bot.core.checks import (
-    is_staff,
-    is_server_admin,
-    is_server_owner,
-    is_server_mod,
-    has_permissions,
-    cooldown
-)
+
+from bot.core.checks import cooldown, has_permissions, is_server_admin, is_server_mod, is_server_owner, is_staff
 
 FEATURE = {
     "slug": "test_checks",
@@ -16,8 +10,9 @@ FEATURE = {
     "version": "1.0.0",
     "author": "Thomas",
     "requires_config": False,
-    "permissions": ["send_messages"]
+    "permissions": ["send_messages"],
 }
+
 
 def register(tree: app_commands.CommandTree, config):
     group = app_commands.Group(name="checktest", description="Test checks decorators")
@@ -57,16 +52,22 @@ def register(tree: app_commands.CommandTree, config):
         if not isinstance(interaction.user, discord.Member):
             await interaction.response.send_message("❌ Commande serveur uniquement", ephemeral=True)
             return
-        
+
         perms = interaction.user.guild_permissions
         roles = [r.name for r in interaction.user.roles if r.name != "@everyone"]
-        
+
         embed = discord.Embed(title="Tes informations", color=discord.Color.blurple())
         embed.add_field(name="Admin", value="✅" if perms.administrator else "❌", inline=True)
-        embed.add_field(name="Propriétaire", value="✅" if interaction.user.id == interaction.guild.owner_id else "❌", inline=True)
-        embed.add_field(name="Mod", value="✅" if (perms.manage_messages or perms.kick_members or perms.ban_members) else "❌", inline=True)
+        embed.add_field(
+            name="Propriétaire", value="✅" if interaction.user.id == interaction.guild.owner_id else "❌", inline=True
+        )
+        embed.add_field(
+            name="Mod",
+            value="✅" if (perms.manage_messages or perms.kick_members or perms.ban_members) else "❌",
+            inline=True,
+        )
         embed.add_field(name="Rôles", value=", ".join(roles) if roles else "Aucun", inline=False)
-        
+
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     tree.add_command(group)

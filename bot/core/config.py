@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+import logging
+import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
+
+import tomllib
 from dotenv import load_dotenv
 
-import os
-import importlib
-import logging
-import tomllib
 
 @dataclass(frozen=True)
 class AppEnv:
@@ -16,36 +16,37 @@ class AppEnv:
     guild_id: int
     config_path: Path
     staff_roles_ids: List[int]
-    
+
 
 def _project_root() -> Path:
-    return Path(__file__).resolve().parents[2]        
+    return Path(__file__).resolve().parents[2]
+
 
 def load_env() -> AppEnv:
     root = _project_root()
     log = logging.getLogger(__name__)
     app_env = os.getenv("APP_ENV", "dev").strip().lower()
-    
+
     if app_env not in ("dev", "prod"):
         raise ValueError("APP_ENV environment variable must be 'dev' or 'prod'.")
     elif app_env == "prod":
         log.info("Running in production environment.")
-    
+
     candidates = [
         root / f".env.{app_env}",
         root / ".env",
         root / "config" / f".env.{app_env}",
-        root / "config" / ".env"
+        root / "config" / ".env",
     ]
     override = False
-    
+
     for path in candidates:
         if path.exists():
             log.info(f"Loaded environment variables from {path}")
             load_dotenv(dotenv_path=path, override=override)
             break
     load_dotenv()
-    
+
     discord_token = os.getenv("DISCORD_TOKEN").strip()
     guild_id_str = os.getenv("GUILD_ID").strip()
     config_path_str = os.getenv("CONFIG_PATH", "config.toml").strip()
@@ -71,8 +72,9 @@ def load_env() -> AppEnv:
         discord_token=discord_token,
         guild_id=guild_id,
         config_path=config_path,
-        staff_roles_ids=[int(role_id) for role_id in staff_roles_ids_str.split(",") if role_id]
+        staff_roles_ids=[int(role_id) for role_id in staff_roles_ids_str.split(",") if role_id],
     )
+
 
 def load_config(config_path: Path) -> Dict:
     log = logging.getLogger(__name__)
@@ -85,12 +87,12 @@ def load_config(config_path: Path) -> Dict:
         if key not in data:
             log.error(f"Missing required configuration key: {key}")
             raise KeyError(f"Missing required configuration key: {key}")
-    
+
     if not isinstance(data["enabled_features"], list):
         log.error("enabled_features must be a list.")
         raise TypeError("enabled_features must be a list.")
     if not isinstance(data["features"], dict):
         log.error("features must be a dictionary.")
         raise TypeError("features must be a dictionary.")
-    
+
     return data
