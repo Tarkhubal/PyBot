@@ -25,8 +25,11 @@ def load_env() -> AppEnv:
     root = _project_root()
     log = logging.getLogger(__name__)
     app_env = os.getenv("APP_ENV", "dev").strip().lower()
+    
     if app_env not in ("dev", "prod"):
         raise ValueError("APP_ENV environment variable must be 'dev' or 'prod'.")
+    elif app_env == "prod":
+        log.info("Running in production environment.")
     
     candidates = [
         root / f".env.{app_env}",
