@@ -50,6 +50,7 @@ class BotApp(commands.Bot):
         self.guild = discord.Object(id=guild_id)
 
     async def setup_hook(self) -> None:
+        self.tree.on_error = self.on_tree_error
         self.tree.clear_commands(guild=None)
         await self.tree.sync()
 
