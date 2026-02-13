@@ -47,8 +47,8 @@ def load_env() -> AppEnv:
         if path.exists():
             log.info(f"Loaded environment variables from {path}")
             load_dotenv(dotenv_path=path, override=override)
-            break
-    load_dotenv()
+        else:
+            load_dotenv()
 
     try:
         discord_token = os.getenv("DISCORD_TOKEN").strip()
