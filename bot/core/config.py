@@ -25,7 +25,10 @@ def _project_root() -> Path:
 def load_env() -> AppEnv:
     root = _project_root()
     log = logging.getLogger(__name__)
-    app_env = os.getenv("APP_ENV", "dev").strip().lower()
+    try:
+        app_env = os.getenv("APP_ENV", "dev").strip().lower()
+    except Exception as e:
+        log.error(f"Error reading APP_ENV environment variable: {e}")
 
     if app_env not in ("dev", "prod"):
         raise ValueError("APP_ENV environment variable must be 'dev' or 'prod'.")
@@ -47,10 +50,16 @@ def load_env() -> AppEnv:
             break
     load_dotenv()
 
-    discord_token = os.getenv("DISCORD_TOKEN").strip()
-    guild_id_str = os.getenv("GUILD_ID").strip()
-    config_path_str = os.getenv("CONFIG_PATH", "config.toml").strip()
-    staff_roles_ids_str = os.getenv("STAFF_ROLES_IDS", "").strip()
+    try:
+        discord_token = os.getenv("DISCORD_TOKEN").strip()
+        guild_id_str = os.getenv("GUILD_ID").strip()
+        config_path_str = os.getenv("CONFIG_PATH", "config.toml").strip()
+        staff_roles_ids_str = os.getenv("STAFF_ROLES_IDS", "").strip()
+    except Exception as e:
+        log.error(f"Error reading environment variables: {e}")
+        raise ValueError(
+            "Error reading environment variables. Please check your .env files and environment settings."
+        ) from e
 
     if not discord_token:
         log.error("DISCORD_TOKEN environment variable is missing.")
